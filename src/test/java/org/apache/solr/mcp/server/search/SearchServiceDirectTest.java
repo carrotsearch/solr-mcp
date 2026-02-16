@@ -52,7 +52,7 @@ class SearchServiceDirectTest {
 	private SearchService searchService;
 
 	private final CollectionValidator allAllowedValidator = new CollectionValidator(
-			new SolrConfigurationProperties(null, null));
+			new SolrConfigurationProperties(null, null, null));
 
 	@BeforeEach
 	void setUp() {

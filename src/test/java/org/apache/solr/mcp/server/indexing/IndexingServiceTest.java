@@ -82,7 +82,8 @@ class IndexingServiceTest {
 		indexingDocumentCreator = new IndexingDocumentCreator(xmlDocumentCreator, csvDocumentCreator,
 				jsonDocumentCreator);
 
-		CollectionValidator allAllowedValidator = new CollectionValidator(new SolrConfigurationProperties(null, null));
+		CollectionValidator allAllowedValidator = new CollectionValidator(
+				new SolrConfigurationProperties(null, null, null));
 		indexingService = new IndexingService(solrClient, indexingDocumentCreator, allAllowedValidator);
 		searchService = new SearchService(solrClient, allAllowedValidator);
 
@@ -775,7 +776,7 @@ class UnitTests {
 	private IndexingService indexingService;
 
 	private final CollectionValidator allAllowedValidator = new CollectionValidator(
-			new SolrConfigurationProperties(null, null));
+			new SolrConfigurationProperties(null, null, null));
 
 	@BeforeEach
 	void setUp() {

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.mcp.server.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -75,7 +76,7 @@ class SolrConfigTest {
 			"http://localhost:8983/custom/solr/, http://localhost:8983/custom/solr"})
 	void testUrlNormalization(String inputUrl, String expectedUrl) {
 		// Create a test properties object
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties(inputUrl, null);
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties(inputUrl, null, null);
 
 		// Create SolrConfig instance
 		SolrConfig solrConfig = new SolrConfig();
@@ -98,7 +99,8 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithoutTrailingSlash() {
 		// Test URL without trailing slash branch
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983", null);
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983", null,
+				null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);
@@ -117,7 +119,8 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithTrailingSlashButNoSolrPath() {
 		// Test URL with trailing slash but no solr path branch
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/", null);
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/", null,
+				null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);
@@ -136,7 +139,7 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithSolrPathButNoTrailingSlash() {
 		// Test URL with solr path but no trailing slash
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr",
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr", null,
 				null);
 		SolrConfig solrConfig = new SolrConfig();
 
@@ -154,10 +157,58 @@ class SolrConfigTest {
 	}
 
 	@Test
+	void testHttpVersion11CreatesHttpJdkSolrClient() {
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/",
+				null, "1.1");
+		SolrConfig solrConfig = new SolrConfig();
+
+		SolrClient client = solrConfig.solrClient(testProperties);
+		assertInstanceOf(HttpJdkSolrClient.class, client);
+
+		try {
+			client.close();
+		} catch (Exception e) {
+			// Ignore close errors in test
+		}
+	}
+
+	@Test
+	void testHttpVersion2CreatesHttp2SolrClient() {
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/",
+				null, "2");
+		SolrConfig solrConfig = new SolrConfig();
+
+		SolrClient client = solrConfig.solrClient(testProperties);
+		assertInstanceOf(Http2SolrClient.class, client);
+
+		try {
+			client.close();
+		} catch (Exception e) {
+			// Ignore close errors in test
+		}
+	}
+
+	@Test
+	void testHttpVersionNullDefaultsToHttp2() {
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/",
+				null, null);
+		SolrConfig solrConfig = new SolrConfig();
+
+		SolrClient client = solrConfig.solrClient(testProperties);
+		assertInstanceOf(Http2SolrClient.class, client);
+
+		try {
+			client.close();
+		} catch (Exception e) {
+			// Ignore close errors in test
+		}
+	}
+
+	@Test
 	void testUrlAlreadyProperlyFormatted() {
 		// Test URL that's already properly formatted
 		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/",
-				null);
+				null, null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);

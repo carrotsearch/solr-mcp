@@ -19,6 +19,7 @@ package org.apache.solr.mcp.server.config;
 import java.util.concurrent.TimeUnit;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -186,7 +187,13 @@ public class SolrConfig {
 			}
 		}
 
-		// Use with explicit base URL
+		// Use HTTP/1.1 (HttpJdkSolrClient) or HTTP/2 (Http2SolrClient) based on
+		// configuration
+		if ("1.1".equals(properties.httpVersion())) {
+			return new HttpJdkSolrClient.Builder(url)
+					.withConnectionTimeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+					.withIdleTimeout(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS).build();
+		}
 		return new Http2SolrClient.Builder(url).withConnectionTimeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 				.withIdleTimeout(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS).build();
 	}

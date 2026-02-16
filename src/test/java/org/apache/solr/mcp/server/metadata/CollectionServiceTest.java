@@ -67,7 +67,7 @@ class CollectionServiceTest {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private final CollectionValidator allAllowedValidator = new CollectionValidator(
-			new SolrConfigurationProperties(null, null));
+			new SolrConfigurationProperties(null, null, null));
 
 	@BeforeEach
 	void setUp() {

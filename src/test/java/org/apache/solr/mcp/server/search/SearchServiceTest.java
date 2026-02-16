@@ -56,7 +56,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class SearchServiceTest {
 
 	private static final CollectionValidator allAllowedValidator = new CollectionValidator(
-			new SolrConfigurationProperties(null, null));
+			new SolrConfigurationProperties(null, null, null));
 
 	// ===== Integration test context =====
 	private static final String COLLECTION_NAME = "search_test_" + System.currentTimeMillis();

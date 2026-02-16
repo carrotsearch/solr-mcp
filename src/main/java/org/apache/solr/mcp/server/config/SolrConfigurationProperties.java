@@ -116,5 +116,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @see org.springframework.boot.context.properties.EnableConfigurationProperties
  */
 @ConfigurationProperties(prefix = "solr")
-public record SolrConfigurationProperties(String url, String collections) {
+public record SolrConfigurationProperties(String url, String collections, String httpVersion) {
 }

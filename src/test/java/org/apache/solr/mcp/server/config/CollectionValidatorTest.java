@@ -26,7 +26,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void nullCollections_AllowsEverything() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null, null));
 
 		assertTrue(validator.isAllCollectionsAllowed());
 		assertTrue(validator.isAllowed("any_collection"));
@@ -35,7 +35,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void emptyCollections_AllowsEverything() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, ""));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "", null));
 
 		assertTrue(validator.isAllCollectionsAllowed());
 		assertTrue(validator.isAllowed("any_collection"));
@@ -43,7 +43,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void blankCollections_AllowsEverything() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "   "));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "   ", null));
 
 		assertTrue(validator.isAllCollectionsAllowed());
 		assertTrue(validator.isAllowed("any_collection"));
@@ -51,7 +51,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void singleCollection_OnlyAllowsThat() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1"));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1", null));
 
 		assertFalse(validator.isAllCollectionsAllowed());
 		assertTrue(validator.isAllowed("core1"));
@@ -61,7 +61,7 @@ class CollectionValidatorTest {
 	@Test
 	void multipleCollections_AllowsOnlyListed() {
 		CollectionValidator validator = new CollectionValidator(
-				new SolrConfigurationProperties(null, "core1,core2,core3"));
+				new SolrConfigurationProperties(null, "core1,core2,core3", null));
 
 		assertFalse(validator.isAllCollectionsAllowed());
 		assertTrue(validator.isAllowed("core1"));
@@ -73,7 +73,7 @@ class CollectionValidatorTest {
 	@Test
 	void collectionsWithSpaces_TrimsCorrectly() {
 		CollectionValidator validator = new CollectionValidator(
-				new SolrConfigurationProperties(null, " core1 , core2 , core3 "));
+				new SolrConfigurationProperties(null, " core1 , core2 , core3 ", null));
 
 		assertTrue(validator.isAllowed("core1"));
 		assertTrue(validator.isAllowed("core2"));
@@ -83,7 +83,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void filterAllowed_NoRestrictions() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null, null));
 
 		List<String> input = Arrays.asList("a", "b", "c");
 		assertEquals(input, validator.filterAllowed(input));
@@ -91,7 +91,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void filterAllowed_WithRestrictions() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "a,c"));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "a,c", null));
 
 		List<String> result = validator.filterAllowed(Arrays.asList("a", "b", "c", "d"));
 		assertEquals(Arrays.asList("a", "c"), result);
@@ -99,14 +99,14 @@ class CollectionValidatorTest {
 
 	@Test
 	void assertAllowed_Passes() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1"));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1", null));
 
 		assertDoesNotThrow(() -> validator.assertAllowed("core1"));
 	}
 
 	@Test
 	void assertAllowed_ThrowsForDisallowed() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1"));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, "core1", null));
 
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
 				() -> validator.assertAllowed("core2"));
@@ -115,7 +115,7 @@ class CollectionValidatorTest {
 
 	@Test
 	void assertAllowed_NoRestrictions_AlwaysPasses() {
-		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null));
+		CollectionValidator validator = new CollectionValidator(new SolrConfigurationProperties(null, null, null));
 
 		assertDoesNotThrow(() -> validator.assertAllowed("anything"));
 	}
