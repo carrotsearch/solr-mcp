@@ -22,6 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.mcp.server.config.CollectionValidator;
 import org.apache.solr.mcp.server.indexing.documentcreator.IndexingDocumentCreator;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
@@ -115,6 +116,8 @@ public class IndexingService {
 	/** Service for creating SolrInputDocument objects from various data formats */
 	private final IndexingDocumentCreator indexingDocumentCreator;
 
+	private final CollectionValidator collectionValidator;
+
 	/**
 	 * Constructs a new IndexingService with the required dependencies.
 	 *
@@ -125,11 +128,17 @@ public class IndexingService {
 	 *
 	 * @param solrClient
 	 *            the SolrJ client instance for communicating with Solr
+	 * @param indexingDocumentCreator
+	 *            the document creator for format conversion
+	 * @param collectionValidator
+	 *            the validator for collection access control
 	 * @see SolrClient
 	 */
-	public IndexingService(SolrClient solrClient, IndexingDocumentCreator indexingDocumentCreator) {
+	public IndexingService(SolrClient solrClient, IndexingDocumentCreator indexingDocumentCreator,
+			CollectionValidator collectionValidator) {
 		this.solrClient = solrClient;
 		this.indexingDocumentCreator = indexingDocumentCreator;
+		this.collectionValidator = collectionValidator;
 	}
 
 	/**
@@ -422,6 +431,7 @@ public class IndexingService {
 	 */
 	public int indexDocuments(String collection, List<SolrInputDocument> documents)
 			throws SolrServerException, IOException {
+		collectionValidator.assertAllowed(collection);
 		int successCount = 0;
 		final int batchSize = DEFAULT_BATCH_SIZE;
 

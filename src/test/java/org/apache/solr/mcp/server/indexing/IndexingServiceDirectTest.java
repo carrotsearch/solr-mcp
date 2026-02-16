@@ -25,6 +25,8 @@ import java.util.List;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.apache.solr.mcp.server.indexing.documentcreator.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,11 +46,14 @@ class IndexingServiceDirectTest {
 	private IndexingService indexingService;
 	private IndexingDocumentCreator indexingDocumentCreator;
 
+	private final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
+
 	@BeforeEach
 	void setUp() {
 		indexingDocumentCreator = new IndexingDocumentCreator(new XmlDocumentCreator(), new CsvDocumentCreator(),
 				new JsonDocumentCreator());
-		indexingService = new IndexingService(solrClient, indexingDocumentCreator);
+		indexingService = new IndexingService(solrClient, indexingDocumentCreator, allAllowedValidator);
 	}
 
 	@Test
@@ -145,7 +150,8 @@ class IndexingServiceDirectTest {
 		// Create a spy on the indexingDocumentCreator and inject it into a new
 		// IndexingService
 		IndexingDocumentCreator indexingDocumentCreatorSpy = spy(indexingDocumentCreator);
-		IndexingService indexingServiceWithSpy = new IndexingService(solrClient, indexingDocumentCreatorSpy);
+		IndexingService indexingServiceWithSpy = new IndexingService(solrClient, indexingDocumentCreatorSpy,
+				allAllowedValidator);
 		IndexingService indexingServiceSpy = spy(indexingServiceWithSpy);
 
 		// Create mock documents that would be returned by createSchemalessDocuments
@@ -188,7 +194,8 @@ class IndexingServiceDirectTest {
 		// Create a spy on the indexingDocumentCreator and inject it into a new
 		// IndexingService
 		IndexingDocumentCreator indexingDocumentCreatorSpy = spy(indexingDocumentCreator);
-		IndexingService indexingServiceWithSpy = new IndexingService(solrClient, indexingDocumentCreatorSpy);
+		IndexingService indexingServiceWithSpy = new IndexingService(solrClient, indexingDocumentCreatorSpy,
+				allAllowedValidator);
 		IndexingService indexingServiceSpy = spy(indexingServiceWithSpy);
 
 		// Mock the createSchemalessDocuments method to throw an exception

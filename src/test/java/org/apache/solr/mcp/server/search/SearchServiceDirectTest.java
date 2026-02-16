@@ -32,6 +32,8 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,9 +51,12 @@ class SearchServiceDirectTest {
 
 	private SearchService searchService;
 
+	private final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
+
 	@BeforeEach
 	void setUp() {
-		searchService = new SearchService(solrClient);
+		searchService = new SearchService(solrClient, allAllowedValidator);
 	}
 
 	@Test

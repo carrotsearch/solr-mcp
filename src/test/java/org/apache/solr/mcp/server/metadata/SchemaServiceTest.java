@@ -28,6 +28,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.client.solrj.response.schema.SchemaRepresentation;
 import org.apache.solr.client.solrj.response.schema.SchemaResponse;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,15 +57,18 @@ class SchemaServiceTest {
 
 	private SchemaService schemaService;
 
+	private final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
+
 	@BeforeEach
 	void setUp() {
-		schemaService = new SchemaService(solrClient, objectMapper);
+		schemaService = new SchemaService(solrClient, objectMapper, allAllowedValidator);
 	}
 
 	@Test
 	void testSchemaService_InstantiatesCorrectly() {
 		// Given/When
-		SchemaService service = new SchemaService(solrClient, objectMapper);
+		SchemaService service = new SchemaService(solrClient, objectMapper, allAllowedValidator);
 
 		// Then
 		assertNotNull(service, "SchemaService should be instantiated correctly");
@@ -136,7 +141,7 @@ class SchemaServiceTest {
 	@Test
 	void testConstructor() {
 		// Test that constructor properly initializes the service
-		SchemaService service = new SchemaService(solrClient, objectMapper);
+		SchemaService service = new SchemaService(solrClient, objectMapper, allAllowedValidator);
 		assertNotNull(service);
 	}
 
@@ -144,7 +149,7 @@ class SchemaServiceTest {
 	void testConstructor_WithNullClient() {
 		// Test constructor with null client
 		assertDoesNotThrow(() -> {
-			new SchemaService(null, objectMapper);
+			new SchemaService(null, objectMapper, allAllowedValidator);
 		});
 	}
 }

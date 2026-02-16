@@ -29,6 +29,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.mcp.server.config.CollectionValidator;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -105,21 +106,24 @@ public class SearchService {
 	public static final String SORT_ITEM = "item";
 	public static final String SORT_ORDER = "order";
 	private final SolrClient solrClient;
+	private final CollectionValidator collectionValidator;
 
 	/**
-	 * Constructs a new SearchService with the required SolrClient dependency.
+	 * Constructs a new SearchService with the required dependencies.
 	 *
 	 * <p>
 	 * This constructor is automatically called by Spring's dependency injection
-	 * framework during application startup, providing the service with the
-	 * necessary Solr client for executing search operations.
+	 * framework during application startup.
 	 *
 	 * @param solrClient
 	 *            the SolrJ client instance for communicating with Solr
+	 * @param collectionValidator
+	 *            the validator for collection access control
 	 * @see SolrClient
 	 */
-	public SearchService(SolrClient solrClient) {
+	public SearchService(SolrClient solrClient, CollectionValidator collectionValidator) {
 		this.solrClient = solrClient;
+		this.collectionValidator = collectionValidator;
 	}
 
 	/**
@@ -249,6 +253,8 @@ public class SearchService {
 			@McpToolParam(description = "Starting offset for pagination", required = false) Integer start,
 			@McpToolParam(description = "Number of rows to return", required = false) Integer rows)
 			throws SolrServerException, IOException {
+
+		collectionValidator.assertAllowed(collection);
 
 		// query
 		final SolrQuery solrQuery = new SolrQuery("*:*");

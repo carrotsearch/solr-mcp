@@ -30,6 +30,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.mcp.server.TestcontainersConfiguration;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.apache.solr.mcp.server.indexing.documentcreator.CsvDocumentCreator;
 import org.apache.solr.mcp.server.indexing.documentcreator.IndexingDocumentCreator;
 import org.apache.solr.mcp.server.indexing.documentcreator.JsonDocumentCreator;
@@ -80,8 +82,9 @@ class IndexingServiceTest {
 		indexingDocumentCreator = new IndexingDocumentCreator(xmlDocumentCreator, csvDocumentCreator,
 				jsonDocumentCreator);
 
-		indexingService = new IndexingService(solrClient, indexingDocumentCreator);
-		searchService = new SearchService(solrClient);
+		CollectionValidator allAllowedValidator = new CollectionValidator(new SolrConfigurationProperties(null, null));
+		indexingService = new IndexingService(solrClient, indexingDocumentCreator, allAllowedValidator);
+		searchService = new SearchService(solrClient, allAllowedValidator);
 
 		if (!initialized) {
 			// Create collection
@@ -771,9 +774,12 @@ class UnitTests {
 
 	private IndexingService indexingService;
 
+	private final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
+
 	@BeforeEach
 	void setUp() {
-		indexingService = new IndexingService(solrClient, indexingDocumentCreator);
+		indexingService = new IndexingService(solrClient, indexingDocumentCreator, allAllowedValidator);
 	}
 
 	@Test

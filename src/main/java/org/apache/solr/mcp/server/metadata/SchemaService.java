@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.client.solrj.response.schema.SchemaRepresentation;
+import org.apache.solr.mcp.server.config.CollectionValidator;
 import org.springaicommunity.mcp.annotation.McpResource;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springframework.stereotype.Service;
@@ -128,6 +129,8 @@ public class SchemaService {
 
 	private final ObjectMapper objectMapper;
 
+	private final CollectionValidator collectionValidator;
+
 	/**
 	 * Constructs a new SchemaService with the required dependencies.
 	 *
@@ -140,11 +143,14 @@ public class SchemaService {
 	 *            the SolrJ client instance for communicating with Solr
 	 * @param objectMapper
 	 *            the Jackson ObjectMapper for JSON serialization
+	 * @param collectionValidator
+	 *            the validator for collection access control
 	 * @see SolrClient
 	 */
-	public SchemaService(SolrClient solrClient, ObjectMapper objectMapper) {
+	public SchemaService(SolrClient solrClient, ObjectMapper objectMapper, CollectionValidator collectionValidator) {
 		this.solrClient = solrClient;
 		this.objectMapper = objectMapper;
+		this.collectionValidator = collectionValidator;
 	}
 
 	/**
@@ -164,6 +170,7 @@ public class SchemaService {
 	@McpResource(uri = "solr://{collection}/schema", name = "solr-collection-schema", description = "Schema definition for a Solr collection including fields, field types, and copy fields", mimeType = "application/json")
 	public String getSchemaResource(String collection) {
 		try {
+			collectionValidator.assertAllowed(collection);
 			return toJson(objectMapper, getSchema(collection));
 		} catch (Exception e) {
 			return "{\"error\": \"" + e.getMessage() + "\"}";
@@ -251,6 +258,7 @@ public class SchemaService {
 	 */
 	@McpTool(name = "get-schema", description = "Get schema for a Solr collection")
 	public SchemaRepresentation getSchema(String collection) throws Exception {
+		collectionValidator.assertAllowed(collection);
 		SchemaRequest schemaRequest = new SchemaRequest();
 		return schemaRequest.process(solrClient, collection).getSchemaRepresentation();
 	}

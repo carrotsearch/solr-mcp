@@ -43,6 +43,7 @@ import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.common.params.CoreAdminParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.mcp.server.config.CollectionValidator;
 import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.springaicommunity.mcp.annotation.McpComplete;
 import org.springaicommunity.mcp.annotation.McpResource;
@@ -254,6 +255,8 @@ public class CollectionService {
 
 	private final ObjectMapper objectMapper;
 
+	private final CollectionValidator collectionValidator;
+
 	/**
 	 * Constructs a new CollectionService with the required dependencies.
 	 *
@@ -265,12 +268,16 @@ public class CollectionService {
 	 *            the SolrJ client instance for communicating with Solr
 	 * @param objectMapper
 	 *            the Jackson ObjectMapper for JSON serialization
+	 * @param collectionValidator
+	 *            the validator for collection access control
 	 * @see SolrClient
 	 * @see SolrConfigurationProperties
 	 */
-	public CollectionService(SolrClient solrClient, ObjectMapper objectMapper) {
+	public CollectionService(SolrClient solrClient, ObjectMapper objectMapper,
+			CollectionValidator collectionValidator) {
 		this.solrClient = solrClient;
 		this.objectMapper = objectMapper;
+		this.collectionValidator = collectionValidator;
 	}
 
 	/**
@@ -345,6 +352,7 @@ public class CollectionService {
 	@McpTool(name = "list-collections", description = "List solr collections")
 	public List<String> listCollections() {
 		try {
+			List<String> result;
 			if (solrClient instanceof CloudSolrClient) {
 				// For SolrCloud - use Collections API
 				CollectionAdminRequest.List request = new CollectionAdminRequest.List();
@@ -352,7 +360,7 @@ public class CollectionService {
 
 				@SuppressWarnings("unchecked")
 				List<String> collections = (List<String>) response.getResponse().get(COLLECTIONS_KEY);
-				return collections != null ? collections : new ArrayList<>();
+				result = collections != null ? collections : new ArrayList<>();
 			} else {
 				// For standalone Solr - use Core Admin API
 				CoreAdminRequest coreAdminRequest = new CoreAdminRequest();
@@ -364,8 +372,9 @@ public class CollectionService {
 				for (int i = 0; i < coreStatus.size(); i++) {
 					cores.add(coreStatus.getName(i));
 				}
-				return cores;
+				result = cores;
 			}
+			return collectionValidator.filterAllowed(result);
 		} catch (SolrServerException | IOException e) {
 			return new ArrayList<>();
 		}
@@ -1025,6 +1034,8 @@ public class CollectionService {
 	@McpTool(name = "check-health", description = "Check health of a Solr collection")
 	public SolrHealthStatus checkHealth(@McpToolParam(description = "Solr collection") String collection) {
 		try {
+			collectionValidator.assertAllowed(collection);
+
 			// Ping Solr
 			SolrPingResponse pingResponse = solrClient.ping(collection);
 

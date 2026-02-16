@@ -75,7 +75,7 @@ class SolrConfigTest {
 			"http://localhost:8983/custom/solr/, http://localhost:8983/custom/solr"})
 	void testUrlNormalization(String inputUrl, String expectedUrl) {
 		// Create a test properties object
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties(inputUrl);
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties(inputUrl, null);
 
 		// Create SolrConfig instance
 		SolrConfig solrConfig = new SolrConfig();
@@ -98,7 +98,7 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithoutTrailingSlash() {
 		// Test URL without trailing slash branch
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983");
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983", null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);
@@ -117,7 +117,7 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithTrailingSlashButNoSolrPath() {
 		// Test URL with trailing slash but no solr path branch
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/");
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/", null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);
@@ -136,7 +136,8 @@ class SolrConfigTest {
 	@Test
 	void testUrlWithSolrPathButNoTrailingSlash() {
 		// Test URL with solr path but no trailing slash
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr");
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr",
+				null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);
@@ -155,7 +156,8 @@ class SolrConfigTest {
 	@Test
 	void testUrlAlreadyProperlyFormatted() {
 		// Test URL that's already properly formatted
-		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/");
+		SolrConfigurationProperties testProperties = new SolrConfigurationProperties("http://localhost:8983/solr/",
+				null);
 		SolrConfig solrConfig = new SolrConfig();
 
 		SolrClient client = solrConfig.solrClient(testProperties);

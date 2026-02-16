@@ -36,6 +36,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,9 +66,12 @@ class CollectionServiceTest {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+	private final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
+
 	@BeforeEach
 	void setUp() {
-		collectionService = new CollectionService(solrClient, objectMapper);
+		collectionService = new CollectionService(solrClient, objectMapper, allAllowedValidator);
 	}
 
 	// Constructor tests
@@ -79,7 +84,7 @@ class CollectionServiceTest {
 	void listCollections_WithCloudSolrClient_ShouldReturnCollections() throws Exception {
 		// Given - This test verifies the service can be constructed with
 		// CloudSolrClient
-		CollectionService cloudService = new CollectionService(cloudSolrClient, objectMapper);
+		CollectionService cloudService = new CollectionService(cloudSolrClient, objectMapper, allAllowedValidator);
 
 		// Note: This test cannot fully exercise listCollections() because it requires
 		// mocking static methods in CollectionAdminRequest which requires PowerMock or
@@ -705,7 +710,7 @@ class CollectionServiceTest {
 
 		when(cloudClient.request(any(), any())).thenReturn(response);
 
-		CollectionService service = new CollectionService(cloudClient, objectMapper);
+		CollectionService service = new CollectionService(cloudClient, objectMapper, allAllowedValidator);
 		List<String> result = service.listCollections();
 
 		assertNotNull(result);
@@ -723,7 +728,7 @@ class CollectionServiceTest {
 
 		when(cloudClient.request(any(), any())).thenReturn(response);
 
-		CollectionService service = new CollectionService(cloudClient, objectMapper);
+		CollectionService service = new CollectionService(cloudClient, objectMapper, allAllowedValidator);
 		List<String> result = service.listCollections();
 
 		assertNotNull(result);
@@ -735,7 +740,7 @@ class CollectionServiceTest {
 		CloudSolrClient cloudClient = mock(CloudSolrClient.class);
 		when(cloudClient.request(any(), any())).thenThrow(new SolrServerException("Connection error"));
 
-		CollectionService service = new CollectionService(cloudClient, objectMapper);
+		CollectionService service = new CollectionService(cloudClient, objectMapper, allAllowedValidator);
 		List<String> result = service.listCollections();
 
 		assertNotNull(result);
@@ -758,7 +763,7 @@ class CollectionServiceTest {
 		// Mock the solrClient request to return the response
 		when(solrClient.request(any(), any())).thenReturn(response);
 
-		CollectionService service = new CollectionService(solrClient, objectMapper);
+		CollectionService service = new CollectionService(solrClient, objectMapper, allAllowedValidator);
 		List<String> result = service.listCollections();
 
 		assertNotNull(result);
@@ -771,7 +776,7 @@ class CollectionServiceTest {
 	void listCollections_NonCloudClient_Error() throws Exception {
 		when(solrClient.request(any(), any())).thenThrow(new IOException("IO error"));
 
-		CollectionService service = new CollectionService(solrClient, objectMapper);
+		CollectionService service = new CollectionService(solrClient, objectMapper, allAllowedValidator);
 		List<String> result = service.listCollections();
 
 		assertNotNull(result);

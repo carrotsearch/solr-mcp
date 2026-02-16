@@ -36,6 +36,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.mcp.server.TestcontainersConfiguration;
+import org.apache.solr.mcp.server.config.CollectionValidator;
+import org.apache.solr.mcp.server.config.SolrConfigurationProperties;
 import org.apache.solr.mcp.server.indexing.IndexingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Import(TestcontainersConfiguration.class)
 @Testcontainers(disabledWithoutDocker = true)
 class SearchServiceTest {
+
+	private static final CollectionValidator allAllowedValidator = new CollectionValidator(
+			new SolrConfigurationProperties(null, null));
 
 	// ===== Integration test context =====
 	private static final String COLLECTION_NAME = "search_test_" + System.currentTimeMillis();
@@ -411,7 +416,7 @@ class SearchServiceTest {
 
 	@Test
 	void unit_constructor_ShouldInitializeWithSolrClient() {
-		SearchService localService = new SearchService(mock(SolrClient.class));
+		SearchService localService = new SearchService(mock(SolrClient.class), allAllowedValidator);
 		assertNotNull(localService);
 	}
 
@@ -427,7 +432,7 @@ class SearchServiceTest {
 			assertEquals("*:*", q.getQuery());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, null, null, null, null);
 		assertNotNull(result);
 	}
@@ -445,7 +450,7 @@ class SearchServiceTest {
 			assertEquals(customQuery, q.getQuery());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", customQuery, null, null, null, null, null);
 		assertNotNull(result);
 	}
@@ -463,7 +468,7 @@ class SearchServiceTest {
 			assertArrayEquals(filterQueries.toArray(), q.getFilterQueries());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, filterQueries, null, null, null, null);
 		assertNotNull(result);
 	}
@@ -477,7 +482,7 @@ class SearchServiceTest {
 		when(mockResponse.getResults()).thenReturn(mockDocuments);
 		when(mockResponse.getFacetFields()).thenReturn(createMockFacetFields());
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class))).thenAnswer(invocation -> mockResponse);
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, facetFields, null, null, null);
 		assertNotNull(result);
 		assertNotNull(result.facets());
@@ -493,7 +498,7 @@ class SearchServiceTest {
 		when(mockResponse.getResults()).thenReturn(mockDocuments);
 		when(mockResponse.getFacetFields()).thenReturn(null);
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class))).thenAnswer(invocation -> mockResponse);
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, null, sortClauses, null, null);
 		assertNotNull(result);
 	}
@@ -513,7 +518,7 @@ class SearchServiceTest {
 			assertEquals(rows, q.getRows());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, null, null, start, rows);
 		assertNotNull(result);
 	}
@@ -540,7 +545,7 @@ class SearchServiceTest {
 			assertEquals(rows, captured.getRows());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", query, filterQueries, facetFields, sortClauses,
 				start, rows);
 		assertNotNull(result);
@@ -551,7 +556,7 @@ class SearchServiceTest {
 		SolrClient mockClient = mock(SolrClient.class);
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class)))
 				.thenThrow(new SolrServerException("Connection error"));
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		assertThrows(SolrServerException.class,
 				() -> localService.search("test_collection", null, null, null, null, null, null));
 	}
@@ -560,7 +565,7 @@ class SearchServiceTest {
 	void unit_search_WhenIOException_ShouldPropagateException() throws Exception {
 		SolrClient mockClient = mock(SolrClient.class);
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class))).thenThrow(new IOException("Network error"));
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		assertThrows(IOException.class,
 				() -> localService.search("test_collection", null, null, null, null, null, null));
 	}
@@ -575,7 +580,7 @@ class SearchServiceTest {
 		when(mockResponse.getResults()).thenReturn(emptyDocuments);
 		when(mockResponse.getFacetFields()).thenReturn(null);
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class))).thenReturn(mockResponse);
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", "nonexistent:value", null, null, null, null,
 				null);
 		assertNotNull(result);
@@ -595,7 +600,7 @@ class SearchServiceTest {
 			assertNull(q.getFilterQueries());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, null, null, null, null);
 		assertNotNull(result);
 	}
@@ -612,7 +617,7 @@ class SearchServiceTest {
 			assertNull(q.getFacetFields());
 			return mockResponse;
 		});
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, List.of(), null, null, null);
 		assertNotNull(result);
 	}
@@ -625,7 +630,7 @@ class SearchServiceTest {
 		when(mockResponse.getResults()).thenReturn(mockDocuments);
 		when(mockResponse.getFacetFields()).thenReturn(createMockFacetFields());
 		when(mockClient.query(eq("test_collection"), any(SolrQuery.class))).thenReturn(mockResponse);
-		SearchService localService = new SearchService(mockClient);
+		SearchService localService = new SearchService(mockClient, allAllowedValidator);
 		SearchResponse result = localService.search("test_collection", null, null, List.of("genre_s"), null, null,
 				null);
 		assertNotNull(result);
